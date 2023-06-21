@@ -367,6 +367,7 @@ def extract_dates(
     matches = []
     completes = []
     partials = []
+    date_factors = []
 
     # print "about to finditer"
     for match in regex.finditer(regex.compile(patterns["date"], flags), text):
@@ -374,6 +375,7 @@ def extract_dates(
             print("\n\nmatch is " + str(match.groupdict()))
         # this goes through the dictionary and removes empties and changes the keys back, e.g. from month_myd to month
         match = dict((k, num(v)) for k, v in match.groupdict().items() if num(v))
+        date_factors.append(match.groupdict())
 
         if all(k in match for k in ("day", "month", "year")):
             completes.append(match)
@@ -431,7 +433,7 @@ def extract_dates(
     if debug:
         print("extract_dates returning: " + str(results))
 
-    return results
+    return results, date_factors
 
 
 e = extract_dates
