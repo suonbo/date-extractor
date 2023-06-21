@@ -373,9 +373,10 @@ def extract_dates(
     for match in regex.finditer(regex.compile(patterns["date"], flags), text):
         if debug:
             print("\n\nmatch is " + str(match.groupdict()))
+        date_factors.append(match.groupdict())
         # this goes through the dictionary and removes empties and changes the keys back, e.g. from month_myd to month
         match = dict((k, num(v)) for k, v in match.groupdict().items() if num(v))
-        date_factors.append(match.groupdict())
+        
 
         if all(k in match for k in ("day", "month", "year")):
             completes.append(match)
