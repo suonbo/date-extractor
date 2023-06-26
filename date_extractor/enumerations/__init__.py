@@ -13,7 +13,7 @@ datadir = join(rootdir, "data")
 days_of_the_month_as_numbers = (
     list(map(str, list(reversed(range(1, 32)))))
     + list(map(lambda n: "0" + str(n), range(0, 10)))
-    + list(map(a, list(reversed(range(1, 32)))))
+    # + list(map(a, list(reversed(range(1, 32)))))
 )
 
 
@@ -21,7 +21,8 @@ with open(join(datadir, "days_of_the_month/ordinal/english.txt")) as f:
     days_of_the_month_as_ordinal = [ln["text"] for ln in DictReader(f) if ln["text"]]
 
 months_verbose = []
-for language in ["english", "arabic", "chinese", "french", "sorani", "turkish"]:
+# for language in ["english", "arabic", "chinese", "french", "sorani", "turkish"]:
+for language in ["english", "french", "german", "spanish"]:
     with open(join(datadir, f"months_verbose/{language}.txt"), encoding="utf8") as f:
         for line in f:
             try:
@@ -55,12 +56,13 @@ months_abbreviated = [
 months_as_numbers = (
     list(map(str, range(1, 13)))
     + list(map(lambda n: "0" + str(n), range(0, 10)))
-    + list(map(a, range(1, 13)))
+    # + list(map(a, range(1, 13)))
 )
 
 month_to_number = {
     "Jan": 1,
     "January": 1,
+    "Januar": 1,
     "Feb": 2,
     "Febuary": 2,
     "February": 2,
@@ -86,7 +88,15 @@ month_to_number = {
     "December": 12,
 }
 
-for language in ("arabic", "chinese", "french", "sorani", "turkish"):
+for language in (
+    # "arabic",
+    #  "chinese",
+    # "french",
+    "german",
+    "spanish",
+    #  "sorani",
+    #  "turkish"
+):
     with open(join(datadir, f"months_verbose/{language}.txt"), encoding="utf8") as f:
         for line in f:
             try:
@@ -102,7 +112,8 @@ current_year = date.today().year
 current_year_abbreviated = int(str(current_year)[-2:])
 
 years_as_numbers = range(1900, current_year + 200)
-_years_as_strings = list(map(str, years_as_numbers)) + list(map(a, years_as_numbers))
+_years_as_strings = list(map(str, years_as_numbers))
+# + list(map(a, years_as_numbers))
 years = _years_as_strings + [y[-2:] for y in _years_as_strings]
 
 tw_years = list(map(str, range(0, current_year - 1912 + 2 + 100)))
