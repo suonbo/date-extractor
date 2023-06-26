@@ -103,7 +103,7 @@ def generate_patterns():
     # blank space, comma, dash, period, backslash
     # todo: write code for forward slash, an escape character
     # patterns['punctuation'] = "(?P<punctuation>, |:| |,|-|\.|\/|)"
-    p["punc"] = "(?:, |:| |,|-|\.|\/|)"
+    p["punc"] = "(?:, |:| |,|-|\.|\/)"
     p["punctuation_fixed_width"] = "(?: |,|;|-|\.|\/)"
     p["punctuation_nocomma"] = "(?: |-|\.|\/)"
     # patterns['punctuation_second'] = "\g<punctuation>"
@@ -113,7 +113,6 @@ def generate_patterns():
     # tried to match the four digits first
     # (?!, \d{2,4}) makes sure it doesn't pick out 23 as the year in January 23, 2015
     p["year"] = "(?P<year>" + p["years"] + ")" + "(?!th)"
-
     p["dmy"] = (
         "(?<!\d{2}:)"
         + "(?<!\d)"
@@ -176,6 +175,7 @@ def generate_patterns():
         "(?<!\d{3})"
         + "(?<!32 )"
         + "(?P<my>"
+        + p["punctuation_nocomma"]
         + p["month"]
         + p["punctuation_nocomma"]
         + p["year"]
@@ -204,23 +204,23 @@ def generate_patterns():
 
     # 公元 = common era
     # 民國 = republic
-    p["system"] = "(?P<system>公元|民國)?"
+    # p["system"] = "(?P<system>公元|民國)?"
 
-    p["chinese"] = (
-        p["system"]
-        + "(?P<year>"
-        + "|".join([p["years"], "(?P<tw_year>" + p["tw_years"] + ")"])
-        + ")"
-        + " ?年 ?"
-        + "(?P<month>"
-        + p["months_as_numbers"]
-        + ")"
-        + " ?月 ?"
-        + "(?P<day>"
-        + p["day"]
-        + ")"
-        + " ?日 ?"
-    )
+    # p["chinese"] = (
+    #     p["system"]
+    #     + "(?P<year>"
+    #     + "|".join([p["years"], "(?P<tw_year>" + p["tw_years"] + ")"])
+    #     + ")"
+    #     + " ?年 ?"
+    #     + "(?P<month>"
+    #     + p["months_as_numbers"]
+    #     + ")"
+    #     + " ?月 ?"
+    #     + "(?P<day>"
+    #     + p["day"]
+    #     + ")"
+    #     + " ?日 ?"
+    # )
 
     iso_years = "|".join(map(str, range(1900, current_year + 200)))
     iso_months = "|".join([str(n).zfill(2) for n in range(1, 13)])
@@ -238,7 +238,15 @@ def generate_patterns():
     p["date"] = (
         "(?P<date>"
         + "|".join(
-            [p["iso"], p["chinese"], p["mdy"], p["dmy"], p["ymd"], p["my"], p["y"]]
+            [
+                p["iso"],
+                # p["chinese"],
+                p["dmy"],
+                p["mdy"],
+                p["ymd"],
+                p["my"],
+                # p["y"],
+            ]
         )
         + ")"
     )
