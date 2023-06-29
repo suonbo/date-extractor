@@ -106,6 +106,7 @@ def generate_patterns():
     p["punc"] = "(?:, |:| |,|-|\.|\/)"
     p["punctuation_fixed_width"] = "(?: |,|;|-|\.|\/)"
     p["punctuation_nocomma"] = "(?: |-|\.|\/)"
+    p["punctuation_nocomma_withnogap"] = "(?: |-|\.|\/)|"
     # patterns['punctuation_second'] = "\g<punctuation>"
     p["punctuation_second"] = p["punc"]
 
@@ -117,6 +118,7 @@ def generate_patterns():
         "(?<!\d{2}:)"
         + "(?<!\d)"
         + "(?P<dmy>"
+        + p["punctuation_fixed_width"]
         + p["day"]
         + p["punc"]
         + p["month"]
