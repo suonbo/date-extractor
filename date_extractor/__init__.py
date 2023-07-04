@@ -16,6 +16,7 @@ tzinfo = pytz.UTC
 
 month_to_number = enumerations.month_to_number
 
+
 # num converts text to a number
 def num(text):
     if text:
@@ -37,7 +38,6 @@ current_century_short = str(current_year)[0:2]
 
 
 def normalize_year(y, debug=False):
-
     if debug:
         print("starting normalize_year with " + str(y))
 
@@ -59,11 +59,12 @@ def normalize_year(y, debug=False):
 
 def generate_patterns():
     global patterns
+    global patterns_for_short_string
     p = {}
+    p2 = {}
 
     # iterate through the names of the variables in the enumerations
     for key in dir(enumerations):
-
         # ignore inherited methods that come with most python modules
         # also ignore short variables of 1 length
         if (
@@ -105,6 +106,7 @@ def generate_patterns():
     # patterns['punctuation'] = "(?P<punctuation>, |:| |,|-|\.|\/|)"
     p["punc"] = "(?:, |:| |,|-|\.|\/)"
     p["punctuation_fixed_width"] = "(?: |,|;|-|\.|\/)"
+    p["punctuation_count_1st_char"] = "(?: |,|;|-|\.|\/|)"
     p["punctuation_nocomma"] = "(?: |-|\.|\/)"
     p["punctuation_nocomma_withnogap"] = "(?: |-|\.|\/)|"
     # patterns['punctuation_second'] = "\g<punctuation>"
@@ -119,6 +121,23 @@ def generate_patterns():
         + "(?<!\d)"
         + "(?P<dmy>"
         + p["punctuation_fixed_width"]
+        + p["day"]
+        + p["punc"]
+        + p["month"]
+        + p["punctuation_second"]
+        + p["year"]
+        + ")"
+        + "(?!-\d{1,2})"
+        + "(?<!"
+        + p["times"]
+        + ")"
+    )
+
+    p2["dmy"] = (
+        "(?<!\d{2}:)"
+        + "(?<!\d)"
+        + "(?P<dmy>"
+        + p["punctuation_count_1st_char"]
         + p["day"]
         + p["punc"]
         + p["month"]
@@ -252,12 +271,32 @@ def generate_patterns():
         )
         + ")"
     )
+
+    p2["date"] = (
+        "(?P<date>"
+        + "|".join(
+            [
+                p["iso"],
+                # p["chinese"],
+                p2["dmy"],
+                p["mdy"],
+                p["ymd"],
+                p["my"],
+                # p["y"],
+            ]
+        )
+        + ")"
+    )
+
     p["date_compiled"] = regex.compile(p["date"], flags)
+    p2["date_compiled"] = regex.compile(p2["date"], flags)
 
     patterns = p
+    patterns_for_short_string = p2
 
 
 global patterns
+global patterns_for_short_string
 generate_patterns()
 
 
@@ -269,9 +308,7 @@ def datetime_from_dict(
     default_second=0,
     return_precision=False,
 ):
-
     try:
-
         if debug:
             print("starting datetime_from_dict with " + str(match))
 
@@ -386,7 +423,92 @@ def extract_dates(
         date_factors.append(match.groupdict())
         # this goes through the dictionary and removes empties and changes the keys back, e.g. from month_myd to month
         match = dict((k, num(v)) for k, v in match.groupdict().items() if num(v))
-        
+
+        if all(k in match for k in ("day", "month", "year")):
+            completes.append(match)
+        else:
+            partials.append(match)
+
+    if debug:
+        print("\ncompletes are " + str(completes))
+
+    # iterate through partials
+    # if a more specific date is given in the completes, drop the partial
+    # for example if Feb 1, 2014 is picked up and February 2014, too, drop February 2014
+
+    partials = [
+        partial for partial in partials if not is_date_in_list(partial, completes)
+    ]
+    if debug:
+        print("\npartials are " + str(partials))
+
+    # convert completes and partials and return list ordered by:
+    # complete/partial, most common, most recent
+    results = []
+    for d in completes + partials:
+        try:
+            results.append(
+                datetime_from_dict(
+                    d,
+                    debug,
+                    default_hour,
+                    default_minute,
+                    default_second,
+                    return_precision,
+                )
+            )
+        except ValueError as e:
+            pass
+
+    if sorting:
+        counter = Counter(results)
+        if return_precision:
+            results = remove_duplicates(
+                sorted(
+                    results,
+                    key=lambda x: (counter[x[1]], x[1].toordinal()),
+                    reverse=True,
+                )
+            )
+        else:
+            results = remove_duplicates(
+                sorted(results, key=lambda x: (counter[x], x.toordinal()), reverse=True)
+            )
+
+    # average_date = mean([d for d in completes])
+
+    if debug:
+        print("extract_dates returning: " + str(results))
+
+    return results, date_factors
+
+
+def extract_dates_for_short(
+    text,
+    sorting=None,
+    debug=False,
+    default_hour=0,
+    default_minute=0,
+    default_second=0,
+    return_precision=False,
+    earliest_possible_year=1900,
+):
+    global patterns_for_short_string
+
+    matches = []
+    completes = []
+    partials = []
+    date_factors = []
+
+    # print "about to finditer"
+    for match in regex.finditer(
+        regex.compile(patterns_for_short_string["date"], flags), text
+    ):
+        if debug:
+            print("\n\nmatch is " + str(match.groupdict()))
+        date_factors.append(match.groupdict())
+        # this goes through the dictionary and removes empties and changes the keys back, e.g. from month_myd to month
+        match = dict((k, num(v)) for k, v in match.groupdict().items() if num(v))
 
         if all(k in match for k in ("day", "month", "year")):
             completes.append(match)
