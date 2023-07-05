@@ -104,7 +104,7 @@ def generate_patterns():
     # blank space, comma, dash, period, backslash
     # todo: write code for forward slash, an escape character
     # patterns['punctuation'] = "(?P<punctuation>, |:| |,|-|\.|\/|)"
-    p["punc"] = "(?:, |:| |,|-|\.|\/)"
+    p["punc"] = "(?:, |:| |,|-|\.|\. |\/)"
     p["punctuation_fixed_width"] = "(?: |,|;|-|\.|\/)"
     p["punctuation_count_1st_char"] = "(?: |,|;|-|\.|\/|)"
     p["punctuation_nocomma"] = "(?: |-|\.|\/)"
@@ -200,6 +200,7 @@ def generate_patterns():
         + p["month"]
         + p["punctuation_nocomma"]
         + p["year"]
+        + p["punctuation_nocomma"]
         + ")"
     )
 
