@@ -116,6 +116,8 @@ def generate_patterns():
     # tried to match the four digits first
     # (?!, \d{2,4}) makes sure it doesn't pick out 23 as the year in January 23, 2015
     p["year"] = "(?P<year>" + p["years"] + ")" + "(?!th)"
+
+    # p is for case like " 03.04.2021" - value of date strating NOT from the first index
     p["dmy"] = (
         "(?<!\d{2}:)"
         + "(?<!\d)"
@@ -133,6 +135,7 @@ def generate_patterns():
         + ")"
     )
 
+    # p2 is for case like "03.04.2021" - value of date strating from the first index
     p2["dmy"] = (
         "(?<!\d{2}:)"
         + "(?<!\d)"
@@ -363,6 +366,7 @@ def datetime_from_dict(
             second = default_second
 
         try:
+            print("detail: ", year, month, day, hour, minute, second, tzinfo)
             new_date_time = datetime(
                 year,
                 month,
@@ -372,6 +376,7 @@ def datetime_from_dict(
                 second,
                 tzinfo=tzinfo,
             )
+            print("new date time: ", new_date_time)
             if return_precision:
                 return (new_date_time, precision)
             else:
@@ -446,8 +451,18 @@ def extract_dates(
     # convert completes and partials and return list ordered by:
     # complete/partial, most common, most recent
     results = []
-    for d in completes + partials:
+    for i, d in enumerate(completes + partials):
         try:
+            # print(
+            #     datetime_from_dict(
+            #         d,
+            #         debug,
+            #         default_hour,
+            #         default_minute,
+            #         default_second,
+            #         return_precision,
+            #     )
+            # )
             results.append(
                 datetime_from_dict(
                     d,
@@ -475,7 +490,7 @@ def extract_dates(
             results = remove_duplicates(
                 sorted(results, key=lambda x: (counter[x], x.toordinal()), reverse=True)
             )
-
+    # print("second result: ", results)
     # average_date = mean([d for d in completes])
 
     if debug:
