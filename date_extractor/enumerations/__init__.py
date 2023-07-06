@@ -12,7 +12,9 @@ datadir = join(rootdir, "data")
 # map converts everthing in the list to unicode
 days_of_the_month_as_numbers = (
     list(map(str, list(reversed(range(1, 32)))))
+    + [i.replace("0", "O") for i in list(map(str, list(reversed(range(1, 32)))))]
     + list(map(lambda n: "0" + str(n), range(0, 10)))
+    + list(map(lambda n: "O" + str(n), range(0, 10)))
     # + list(map(a, list(reversed(range(1, 32)))))
 )
 
@@ -56,6 +58,7 @@ months_abbreviated = [
 months_as_numbers = (
     list(map(str, range(1, 13)))
     + list(map(lambda n: "0" + str(n), range(0, 10)))
+    + list(map(lambda n: "O" + str(n), range(0, 10)))
     # + list(map(a, range(1, 13)))
 )
 
