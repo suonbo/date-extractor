@@ -331,9 +331,15 @@ def datetime_from_dict(
 
         try:
             day = match.get("day", None)
+            if "O" in day:
+                day = day.replace("O", "0")
+            for ord in ["th", "st", "nd", "rd"]:
+                if ord in day:
+                    day = day.replace(ord, "")
             if day:
                 precision = "day"
                 day = int(day)
+
             else:
                 day = 1
         except Exception as e:
@@ -366,7 +372,6 @@ def datetime_from_dict(
             second = default_second
 
         try:
-            print("detail: ", year, month, day, hour, minute, second, tzinfo)
             new_date_time = datetime(
                 year,
                 month,
@@ -376,7 +381,6 @@ def datetime_from_dict(
                 second,
                 tzinfo=tzinfo,
             )
-            print("new date time: ", new_date_time)
             if return_precision:
                 return (new_date_time, precision)
             else:
@@ -426,9 +430,16 @@ def extract_dates(
     for match in regex.finditer(regex.compile(patterns["date"], flags), text):
         if debug:
             print("\n\nmatch is " + str(match.groupdict()))
-        date_factors.append(match.groupdict())
+
+        match_copy = match.groupdict().copy()
+        if match_copy["day"]:
+            for ord in ["st", "nd", "th", "rd"]:
+                if ord in match_copy["day"]:
+                    match_copy["day"] = match_copy["day"].replace(ord, "")
+
+        date_factors.append(match_copy)
         # this goes through the dictionary and removes empties and changes the keys back, e.g. from month_myd to month
-        match = dict((k, num(v)) for k, v in match.groupdict().items() if num(v))
+        match = dict((k, num(v)) for k, v in match_copy.items() if num(v))
 
         if all(k in match for k in ("day", "month", "year")):
             completes.append(match)
@@ -522,9 +533,16 @@ def extract_dates_for_short(
     ):
         if debug:
             print("\n\nmatch is " + str(match.groupdict()))
-        date_factors.append(match.groupdict())
+
+        match_copy = match.groupdict().copy()
+        if match_copy["day"]:
+            for ord in ["st", "nd", "th", "rd"]:
+                if ord in match_copy["day"]:
+                    match_copy["day"] = match_copy["day"].replace(ord, "")
+
+        date_factors.append(match_copy)
         # this goes through the dictionary and removes empties and changes the keys back, e.g. from month_myd to month
-        match = dict((k, num(v)) for k, v in match.groupdict().items() if num(v))
+        match = dict((k, num(v)) for k, v in match_copy.items() if num(v))
 
         if all(k in match for k in ("day", "month", "year")):
             completes.append(match)
