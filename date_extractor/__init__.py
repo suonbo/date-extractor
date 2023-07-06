@@ -331,8 +331,6 @@ def datetime_from_dict(
 
         try:
             day = match.get("day", None)
-            if "O" in day:
-                day = day.replace("O", "0")
             for ord in ["th", "st", "nd", "rd"]:
                 if ord in day:
                     day = day.replace(ord, "")
@@ -433,6 +431,8 @@ def extract_dates(
 
         match_copy = match.groupdict().copy()
         if match_copy["day"]:
+            if "O" in match_copy["day"]:
+                match_copy["day"] = match_copy["day"].replace("O", "0")
             for ord in ["st", "nd", "th", "rd"]:
                 if ord in match_copy["day"]:
                     match_copy["day"] = match_copy["day"].replace(ord, "")
@@ -536,6 +536,8 @@ def extract_dates_for_short(
 
         match_copy = match.groupdict().copy()
         if match_copy["day"]:
+            if "O" in match_copy["day"]:
+                match_copy["day"] = match_copy["day"].replace("O", "0")
             for ord in ["st", "nd", "th", "rd"]:
                 if ord in match_copy["day"]:
                     match_copy["day"] = match_copy["day"].replace(ord, "")
